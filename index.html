@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全國高級中等學校閱讀心得寫作比賽 - 官方規範與實時字數檢測系統</title>
+    <style>
+        :root {
+            --primary: #0D9488;
+            --primary-light: #CCFBF1;
+            --secondary: #2563EB;
+            --accent: #D97706;
+            --danger: #DC2626;
+            --danger-light: #FEF2F2;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #475569;
+            --success: #059669;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "新細明體", "PMingLiU", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); line-height: 1.8; font-size: 17px; padding-bottom: 80px; }
+
+        header {
+            position: sticky; top: 0; background: linear-gradient(135deg, var(--primary), #0284C7);
+            color: white; padding: 20px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 1000; text-align: center;
+        }
+        header h1 { font-size: 1.6rem; margin-bottom: 8px; font-weight: bold; }
+
+        .search-box-container { max-width: 600px; margin: 10px auto; display: flex; gap: 8px; }
+        .search-box { width: 100%; padding: 10px 18px; border-radius: 25px; border: 2px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.95); font-size: 1rem; outline: none; color: #000; }
+        .clear-search-btn { background: rgba(255,255,255,0.3); border: none; color: white; border-radius: 20px; padding: 0 16px; cursor: pointer; font-size: 0.9rem; white-space: nowrap; }
+
+        nav { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        nav button { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 14px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        nav button:hover, nav button.active { background: white; color: var(--primary); }
+
+        .container { max-width: 960px; margin: 30px auto; padding: 0 20px; }
+        .unit-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .unit-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card-bg); border-radius: 12px; padding: 28px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
+        .card.danger { border-left-color: var(--danger); }
+        .card.accent { border-left-color: var(--accent); }
+
+        h2 { font-size: 1.4rem; color: var(--primary); margin-bottom: 16px; border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; }
+        h3 { font-size: 1.15rem; color: #1E293B; margin: 20px 0 10px 0; font-weight: bold; }
+        p { margin-bottom: 12px; text-align: justify; }
+        ul, ol { margin-left: 24px; margin-bottom: 16px; }
+        li { margin-bottom: 8px; }
+
+        .example-box { background-color: #F1F5F9; border-left: 4px solid var(--primary); padding: 15px; border-radius: 6px; margin: 12px 0; font-size: 0.95rem; }
+        .danger-box { background-color: var(--danger-light); border: 1px solid #FCA5A5; color: #991B1B; padding: 16px; border-radius: 8px; margin: 15px 0; }
+        mark.search-highlight { background-color: #FDE047; color: #000; padding: 2px 4px; border-radius: 3px; font-weight: bold; }
+
+        .editor-box { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 10px; margin-bottom: 15px; }
+        .editor-box label { font-weight: bold; display: block; margin-bottom: 6px; color: #1E293B; }
+        .editor-box textarea { width: 100%; height: 120px; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 1rem; resize: vertical; }
+        .counter-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; margin-top: 6px; }
+        .badge-fail { background: #FEE2E2; color: #991B1B; }
+        .badge-pass { background: #D1FAE5; color: #065F46; }
+
+        .check-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: #FFF; margin-bottom: 10px; border-radius: 8px; border: 1px solid #E2E8F0; cursor: pointer; }
+        .check-item:hover { background: #F8FAFC; }
+        .check-item input[type="checkbox"] { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--danger); flex-shrink: 0; }
+
+        footer { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #E2E8F0; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>全國高級中等學校閱讀心得寫作比賽官方指南與撰寫工具</h1>
+        <div class="search-box-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 搜尋規則（例如：頁碼、圖表、字數、標點符號...）" oninput="handleSearch()">
+            <button class="clear-search-btn" onclick="clearSearch()">清除</button>
+        </div>
+        <nav>
+            <button class="nav-btn active" onclick="switchUnit(0)">🚨 參賽資格與四大禁忌</button>
+            <button class="nav-btn" onclick="switchUnit(1)">✍️ 四大段落寫作與字數標準</button>
+            <button class="nav-btn" onclick="switchUnit(2)">📄 排版與標點符號規範</button>
+            <button class="nav-btn" style="background:#059669;" onclick="switchUnit(3)">🛠️ 實時字數檢測與草稿箱</button>
+            <button class="nav-btn" style="background:#DC2626;" onclick="switchUnit(4)">📋 投稿淘汰自檢表</button>
+        </nav>
+    </header>
+
+    <div class="container" id="contentContainer">
+
+        <!-- 參賽資格與四大禁忌 -->
+        <section class="unit-section active" data-unit="0">
+            <div class="card danger search-target">
+                <h2>🚨 違反直接取消參賽資格條款</h2>
+                <div class="danger-box">
+                    <strong>⚠️ 請注意！只要觸犯以下任何一條規定，將直接取消參賽資格（淘汰）：</strong>
+                </div>
+                <ol>
+                    <li><strong>選書不符規定：</strong>
+                        <ul>
+                            <li>圖書之選擇須以<strong>中文或英文課外書籍（且必須有頁碼）</strong>為限。</li>
+                            <li>選擇中文圖書，須以繁體中文撰寫並勾選中文作品；選擇英文圖書，須以英文撰寫並勾選英文作品。<i>（不可選中文書寫英文心得，反之亦然）</i>。</li>
+                        </ul>
+                    </li>
+                    <li><strong>出現圖片或表格：</strong>參賽作品<strong>絕對不得出現任何圖片或表格</strong>。</li>
+                    <li><strong>語系與標點符號混用：</strong>撰寫限全篇中文或全篇英文。標點符號須依中英文書寫慣例輸入（中文用全型，英文用半型），<strong>絕不能混用</strong>。</li>
+                    <li><strong>揭露個人資訊：</strong>作品標題及內容中<strong>不得出現參賽者姓名及其就讀學校之名稱</strong>，以避免影響評審公平性。</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- 四大段落寫作與字數標準 -->
+        <section class="unit-section" data-unit="1">
+            <div class="card search-target">
+                <h2>✍️ 四大段落結構與字數嚴格限制</h2>
+                <p>閱讀心得作品內容必須完整包含以下四大項，且各有嚴格的字數限制：</p>
+
+                <div class="example-box">
+                    <h3>1. 圖書作者與內容簡介</h3>
+                    <ul>
+                        <li><strong>字數規定：</strong>中文 100 字～200 字，英文 40 字～80 字。</li>
+                        <li><strong>內容重點：</strong>提供評審瞭解圖書作者背景與整體書籍大綱。</li>
+                        <li><strong>抄襲比對：</strong>自 109 年 2 月 1 日起，此段內容<strong>不列入</strong>抄襲比對。</li>
+                    </ul>
+                </div>
+
+                <div class="example-box">
+                    <h3>2. 內容摘錄</h3>
+                    <ul>
+                        <li><strong>字數規定：</strong>中文 100 字～300 字，英文 60 字～150 字。</li>
+                        <li><strong>內容重點：</strong>請摘錄書中有意義之原文文字。</li>
+                        <li><strong>必填項目：</strong><strong>必須註明摘錄文字出處之頁碼</strong>（例如：摘自第 45 頁）。</li>
+                    </ul>
+                </div>
+
+                <div class="example-box">
+                    <h3>3. 我的觀點（評分核心）</h3>
+                    <ul>
+                        <li><strong>字數規定：</strong>中文 <strong>1000 字以上</strong>，英文 <strong>600 字以上</strong>。</li>
+                        <li><strong>內容重點：</strong>個人閱讀後的深刻心得、感想或反思。</li>
+                        <li><strong>抄襲比對：</strong>此段為<strong>評分之主要段落</strong>，會進行極為嚴格的疑似抄襲檢核。</li>
+                    </ul>
+                </div>
+
+                <div class="example-box">
+                    <h3>4. 討論議題</h3>
+                    <ul>
+                        <li><strong>字數規定：</strong>無硬性字數，但請針對圖書內容<strong>至少提出一個相關的討論議題</strong>。</li>
+                        <li><strong>抄襲比對：</strong>此段內容<strong>列入疑似抄襲檢核</strong>。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 排版與標點符號規範 -->
+        <section class="unit-section" data-unit="2">
+            <div class="card search-target">
+                <h2>📄 排版與標點符號格式細節</h2>
+
+                <h3>一、段落排版原則</h3>
+                <ul>
+                    <li><strong>整齊一致：</strong>全篇段落開頭須整齊一致（例如中文統一縮排兩個字）。</li>
+                    <li><strong>空行規定：</strong><strong>段落與段落之間必須空一行</strong>。</li>
+                </ul>
+
+                <h3>二、標點符號與語言規範</h3>
+                <ul>
+                    <li><strong>全繁體中文作品：</strong>內文與所有標點符號一律使用<strong>全型標點符號</strong>（如：，。！「」？）。</li>
+                    <li><strong>全英文作品：</strong>內文與所有標點符號一律使用<strong>半型標點符號</strong>（如: , . ! " " ?），且標點符號後須空一格半形空格。</li>
+                    <li><strong>禁止語系混用：</strong>全篇不可中英文雜貼，標點符號亦不可半型全型交錯。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 實時字數檢測與草稿箱 -->
+        <section class="unit-section" data-unit="3">
+            <div class="card search-target">
+                <h2>🛠️ 四大段落實時字數檢測與編輯器</h2>
+                <p>請在此貼上或撰寫您的草稿，系統會自動檢測是否符合比賽規定的字數區間：</p>
+
+                <div style="margin-bottom:15px;">
+                    <label><strong>請選擇投稿類別：</strong></label>
+                    <select id="langMode" onchange="checkAllCounts()" style="padding:6px 12px; font-size:1rem; border-radius:6px; border:1px solid #CBD5E1;">
+                        <option value="zh">繁體中文作品</option>
+                        <option value="en">英文作品</option>
+                    </select>
+                </div>
+
+                <!-- 段落 1 -->
+                <div class="editor-box">
+                    <label>1. 圖書作者與內容簡介（不列入抄襲比對）</label>
+                    <textarea id="part1" oninput="checkAllCounts()" placeholder="請輸入作者與內容簡介..."></textarea>
+                    <div><span id="badge1" class="counter-badge badge-fail">未符合字數</span></div>
+                </div>
+
+                <!-- 段落 2 -->
+                <div class="editor-box">
+                    <label>2. 內容摘錄（須註明頁碼）</label>
+                    <textarea id="part2" oninput="checkAllCounts()" placeholder="請摘錄原文並記得註明頁碼（如：摘自 p.32-35）..."></textarea>
+                    <div><span id="badge2" class="counter-badge badge-fail">未符合字數</span></div>
+                </div>
+
+                <!-- 段落 3 -->
+                <div class="editor-box">
+                    <label>3. 我的觀點（核心評分段落）</label>
+                    <textarea id="part3" oninput="checkAllCounts()" placeholder="請輸入個人閱讀心得與觀點..."></textarea>
+                    <div><span id="badge3" class="counter-badge badge-fail">未符合字數</span></div>
+                </div>
+
+                <!-- 段落 4 -->
+                <div class="editor-box">
+                    <label>4. 討論議題（至少提出一個議題）</label>
+                    <textarea id="part4" oninput="checkAllCounts()" placeholder="請針對圖書內容提出至少一個討論議題..."></textarea>
+                    <div><span id="badge4" class="counter-badge badge-fail">未輸入內容</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 投稿淘汰自檢表 -->
+        <section class="unit-section" data-unit="4">
+            <div class="card danger search-target">
+                <h2>📋 投稿中學生網站前終極自檢表</h2>
+                <p>上傳至系統前，請確認每一項皆已勾選。<strong>只要有一項不符直接取消資格：</strong></p>
+                <div class="check-list">
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 1. 選讀書籍為有頁碼之課外圖書。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 2. 中文圖書用全繁體中文撰寫並勾選中文作品；英文圖書用英文撰寫並勾選英文作品。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 3. 全文絕對沒有任何「圖片」或「表格」。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 4. 四大段落完整無缺（1.圖書作者與內容簡介 / 2.內容摘錄 / 3.我的觀點 / 4.討論議題）。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 5. 「圖書作者與內容簡介」字數符合規定（中文 100-200 字 / 英文 40-80 字）。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 6. 「內容摘錄」字數符合規定（中文 100-300 字 / 英文 60-150 字），且已註明頁碼。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 7. 「我的觀點」字數達標（中文 1000 字以上 / 英文 600 字以上）。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 8. 「討論議題」已提出至少一個相關討論議題。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 9. 全篇沒有出現作者個人姓名或就讀學校名稱。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 10. 段落開頭整齊一致，且「段落與段落之間有空一行」。</label>
+                    <label class="check-item"><input type="checkbox" onchange="checkStatus()"> 11. 中英文標點符號完全依慣例輸入，沒有半型全型混用。</label>
+                </div>
+
+                <div id="checkSuccess" class="danger-box" style="display:none; background:#D1FAE5; border-color:#10B981; color:#065F46;">
+                    🎉 <strong>非常完美！</strong> 你的閱讀心得格式完全符合中學生網站最新規範，可以放心投稿！
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>全國高級中等學校閱讀心得寫作比賽官方規範輔助工具</p>
+    </footer>
+
+    <script>
+        function switchUnit(index) {
+            document.getElementById('searchInput').value = ''; clearHighlights();
+            document.querySelectorAll('.unit-section').forEach((sec, i) => sec.classList.toggle('active', i === index));
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+        }
+
+        function getWordCount(text, mode) {
+            if (!text.trim()) return 0;
+            if (mode === 'zh') {
+                return text.replace(/\s+/g, '').length;
+            } else {
+                const words = text.trim().match(/\b\w+\b/g);
+                return words ? words.length : 0;
+            }
+        }
+
+        function checkAllCounts() {
+            const mode = document.getElementById('langMode').value;
+            const unitStr = mode === 'zh' ? '字' : '字 (Words)';
+
+            // Part 1
+            const p1Text = document.getElementById('part1').value;
+            const p1Count = getWordCount(p1Text, mode);
+            const p1Badge = document.getElementById('badge1');
+            const p1Min = mode === 'zh' ? 100 : 40;
+            const p1Max = mode === 'zh' ? 200 : 80;
+            p1Badge.innerText = `目前：${p1Count} ${unitStr} (標準：${p1Min}~${p1Max} ${unitStr})`;
+            p1Badge.className = (p1Count >= p1Min && p1Count <= p1Max) ? 'counter-badge badge-pass' : 'counter-badge badge-fail';
+
+            // Part 2
+            const p2Text = document.getElementById('part2').value;
+            const p2Count = getWordCount(p2Text, mode);
+            const p2Badge = document.getElementById('badge2');
+            const p2Min = mode === 'zh' ? 100 : 60;
+            const p2Max = mode === 'zh' ? 300 : 150;
+            p2Badge.innerText = `目前：${p2Count} ${unitStr} (標準：${p2Min}~${p2Max} ${unitStr})`;
+            p2Badge.className = (p2Count >= p2Min && p2Count <= p2Max) ? 'counter-badge badge-pass' : 'counter-badge badge-fail';
+
+            // Part 3
+            const p3Text = document.getElementById('part3').value;
+            const p3Count = getWordCount(p3Text, mode);
+            const p3Badge = document.getElementById('badge3');
+            const p3Min = mode === 'zh' ? 1000 : 600;
+            p3Badge.innerText = `目前：${p3Count} ${unitStr} (標準：${p3Min} ${unitStr}以上)`;
+            p3Badge.className = (p3Count >= p3Min) ? 'counter-badge badge-pass' : 'counter-badge badge-fail';
+
+            // Part 4
+            const p4Text = document.getElementById('part4').value.trim();
+            const p4Badge = document.getElementById('badge4');
+            p4Badge.innerText = p4Text.length > 0 ? '已輸入議題' : '未輸入內容（至少須提出一個議題）';
+            p4Badge.className = p4Text.length > 0 ? 'counter-badge badge-pass' : 'counter-badge badge-fail';
+        }
+
+        function checkStatus() {
+            const checkboxes = document.querySelectorAll('.check-item input[type="checkbox"]');
+            document.getElementById('checkSuccess').style.display = Array.from(checkboxes).every(cb => cb.checked) ? 'block' : 'none';
+        }
+
+        let originalContent = [];
+        window.onload = function() {
+            checkAllCounts();
+            document.querySelectorAll('.search-target').forEach((card, idx) => originalContent[idx] = card.innerHTML);
+        };
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query === '') { switchUnit(0); return; }
+            document.querySelectorAll('.search-target').forEach((card, idx) => {
+                const parentSection = card.closest('.unit-section');
+                card.innerHTML = originalContent[idx];
+                if (card.textContent.toLowerCase().includes(query.toLowerCase())) {
+                    parentSection.classList.add('active');
+                    highlightText(card, query);
+                } else { parentSection.classList.remove('active'); }
+            });
+        }
+
+        function highlightText(node, keyword) {
+            const re = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+            function innerHighlight(element) {
+                if (element.nodeType === 3 && re.test(element.nodeValue)) {
+                    const span = document.createElement('span');
+                    span.innerHTML = element.nodeValue.replace(re, '<mark class="search-highlight">$1</mark>');
+                    element.parentNode.replaceChild(span, element);
+                } else if (element.nodeType === 1 && element.childNodes) {
+                    for (let i = 0; i < element.childNodes.length; i++) innerHighlight(element.childNodes[i]);
+                }
+            }
+            innerHighlight(node);
+        }
+        function escapeRegExp(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function clearSearch() { document.getElementById('searchInput').value = ''; clearHighlights(); switchUnit(0); }
+        function clearHighlights() { document.querySelectorAll('.search-target').forEach((card, idx) => { if (originalContent[idx]) card.innerHTML = originalContent[idx]; }); }
+    </script>
+</body>
+</html>
